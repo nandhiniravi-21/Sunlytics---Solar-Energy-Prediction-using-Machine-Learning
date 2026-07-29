@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}About | Sunlytics{% endblock %}
+{% block content %}
+
+<section class="hero-section" style="padding: 90px 0 70px;">
+  <div class="container text-center">
+    <span class="hero-badge"><i class="fa-solid fa-circle-info"></i> About the Project</span>
+    <h1 class="hero-title" style="font-size: 2.6rem;">About <span>Sunlytics</span></h1>
+    <p class="hero-subtitle mx-auto text-center">An AI-Based Solar Power Generation Prediction System built as a final year engineering project.</p>
+  </div>
+</section>
+
+<section class="section-padding">
+  <div class="container">
+    <div class="row g-4 mb-5">
+      <div class="col-md-6">
+        <div class="sunlytics-card p-4 h-100">
+          <div class="feature-icon-box"><i class="fa-solid fa-bullseye"></i></div>
+          <h5>Project Objective</h5>
+          <p class="text-muted mb-0">To design and deploy a machine learning system that accurately predicts solar power generation from real-time environmental and panel-condition data, enabling proactive energy planning.</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="sunlytics-card p-4 h-100">
+          <div class="feature-icon-box"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <h5>Problem Statement</h5>
+          <p class="text-muted mb-0">Solar power output varies with weather and panel conditions, making manual estimation unreliable. Sunlytics addresses this by learning patterns directly from historical operational data.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sunlytics-card p-4 p-md-5 mb-5">
+      <h5 class="mb-3"><i class="fa-solid fa-database me-2" style="color:var(--accent);"></i>Dataset Information</h5>
+      <p class="text-muted">The model is trained on a dataset of 10,000 solar installation records, capturing readings such as solar irradiance, panel and ambient temperature, cloud cover, humidity, wind speed, rainfall, dust level, panel efficiency, and inverter efficiency — with <strong>Solar Power Output</strong> as the target variable.</p>
+      <div class="row g-3 mt-2">
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded-3 text-center" style="background: var(--bg); border:1px solid var(--border);">
+            <div class="fw-bold fs-5">{{ metrics.training_rows or '10,000' }}</div>
+            <div class="text-muted small">Total Records</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded-3 text-center" style="background: var(--bg); border:1px solid var(--border);">
+            <div class="fw-bold fs-5">11</div>
+            <div class="text-muted small">Input Features</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded-3 text-center" style="background: var(--bg); border:1px solid var(--border);">
+            <div class="fw-bold fs-5">{{ "%.3f"|format(metrics.r2_score or 0) }}</div>
+            <div class="text-muted small">R² Score</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded-3 text-center" style="background: var(--bg); border:1px solid var(--border);">
+            <div class="fw-bold fs-5">{{ "%.3f"|format(metrics.rmse or 0) }}</div>
+            <div class="text-muted small">RMSE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-5 mb-5">
+      <div class="col-lg-6">
+        <h5 class="mb-4"><i class="fa-solid fa-diagram-project me-2" style="color:var(--accent);"></i>Workflow</h5>
+        <div class="timeline-item"><strong>Data Collection</strong><p class="text-muted mb-0">Load the raw solar installation dataset.</p></div>
+        <div class="timeline-item"><strong>Preprocessing</strong><p class="text-muted mb-0">Drop identifier columns and engineer the Hour feature from timestamp data.</p></div>
+        <div class="timeline-item"><strong>Exploratory Analysis</strong><p class="text-muted mb-0">Distribution plots, correlation heatmaps and outlier detection.</p></div>
+        <div class="timeline-item"><strong>Model Training</strong><p class="text-muted mb-0">GridSearchCV-tuned Random Forest Regressor with 5-fold cross-validation.</p></div>
+        <div class="timeline-item"><strong>Evaluation</strong><p class="text-muted mb-0">R², MAE, MSE and RMSE on a held-out test set.</p></div>
+        <div class="timeline-item"><strong>Deployment</strong><p class="text-muted mb-0">Model served through this Flask web application.</p></div>
+      </div>
+      <div class="col-lg-6">
+        <h5 class="mb-4"><i class="fa-solid fa-sitemap me-2" style="color:var(--accent);"></i>System Architecture</h5>
+        <div class="timeline-item"><strong>Frontend</strong><p class="text-muted mb-0">HTML5, CSS3, Bootstrap 5, JavaScript, Chart.js.</p></div>
+        <div class="timeline-item"><strong>Backend</strong><p class="text-muted mb-0">Flask handles routing, authentication, and PDF generation.</p></div>
+        <div class="timeline-item"><strong>ML Layer</strong><p class="text-muted mb-0">Scikit-learn Random Forest model loaded via Joblib.</p></div>
+        <div class="timeline-item"><strong>Database</strong><p class="text-muted mb-0">SQLite stores users, predictions and contact messages.</p></div>
+
+        <h5 class="mt-4 mb-3"><i class="fa-solid fa-star me-2" style="color:var(--accent);"></i>Top Predictive Features</h5>
+        <ul class="list-unstyled">
+          {% for f in (feature_importance or [])[:5] %}
+          <li class="d-flex justify-content-between border-bottom py-2" style="border-color: var(--border) !important;">
+            <span>{{ f.feature.replace('_',' ') }}</span>
+            <strong>{{ "%.1f"|format(f.importance * 100) }}%</strong>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+      <div class="col-12">
+        <h5 class="mb-4"><i class="fa-solid fa-rocket me-2" style="color:var(--accent);"></i>Future Enhancements</h5>
+        <div class="row g-3">
+          <div class="col-md-4"><div class="sunlytics-card p-3"><i class="fa-solid fa-cloud-sun-rain text-accent" style="color:var(--accent);"></i> Live weather API integration</div></div>
+          <div class="col-md-4"><div class="sunlytics-card p-3"><i class="fa-solid fa-microchip" style="color:var(--accent);"></i> IoT sensor auto-ingestion</div></div>
+          <div class="col-md-4"><div class="sunlytics-card p-3"><i class="fa-solid fa-chart-line" style="color:var(--accent);"></i> Multi-day forecasting</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <h5 class="mb-4"><i class="fa-solid fa-users me-2" style="color:var(--accent);"></i>Team Members</h5>
+        <div class="row g-3">
+          {% for name, role in [("Team Member 1","Machine Learning & Model Development"),("Team Member 2","Backend & Database"),("Team Member 3","Frontend & UI/UX")] %}
+          <div class="col-md-4">
+            <div class="sunlytics-card p-3 text-center">
+              <div class="avatar-circle" style="width:56px;height:56px;font-size:1.1rem;">{{ name.split(' ')[-1] }}</div>
+              <div class="fw-semibold">{{ name }}</div>
+              <div class="text-muted small">{{ role }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <h5 class="mb-4"><i class="fa-solid fa-chalkboard-user me-2" style="color:var(--accent);"></i>Project Guide</h5>
+        <div class="sunlytics-card p-3 text-center">
+          <div class="avatar-circle">G</div>
+          <div class="fw-semibold">Project Guide</div>
+          <div class="text-muted small">Department of Engineering</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

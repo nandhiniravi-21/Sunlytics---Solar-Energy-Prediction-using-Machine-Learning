@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Contact | Sunlytics{% endblock %}
+{% block content %}
+
+<section class="hero-section" style="padding: 90px 0 70px;">
+  <div class="container text-center">
+    <span class="hero-badge"><i class="fa-solid fa-envelope"></i> Get in Touch</span>
+    <h1 class="hero-title" style="font-size: 2.6rem;">Contact <span>Us</span></h1>
+    <p class="hero-subtitle mx-auto text-center">Have a question about Sunlytics? Send us a message and we'll get back to you.</p>
+  </div>
+</section>
+
+<section class="section-padding">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-5">
+        <h5 class="mb-4">Contact Information</h5>
+        <div class="d-flex gap-3 mb-4">
+          <div class="feature-icon-box" style="margin-bottom:0; flex-shrink:0;"><i class="fa-solid fa-envelope"></i></div>
+          <div><strong>Email</strong><p class="text-muted mb-0">contact@sunlytics.example</p></div>
+        </div>
+        <div class="d-flex gap-3 mb-4">
+          <div class="feature-icon-box" style="margin-bottom:0; flex-shrink:0;"><i class="fa-solid fa-graduation-cap"></i></div>
+          <div><strong>Institution</strong><p class="text-muted mb-0">Department of Engineering</p></div>
+        </div>
+        <div class="d-flex gap-3 mb-4">
+          <div class="feature-icon-box" style="margin-bottom:0; flex-shrink:0;"><i class="fa-solid fa-code-branch"></i></div>
+          <div><strong>Project Type</strong><p class="text-muted mb-0">Final Year Engineering Project</p></div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="sunlytics-card p-4 p-md-5">
+          <form method="POST" action="{{ url_for('contact') }}" novalidate>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" placeholder="Your name" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Subject</label>
+                <input type="text" name="subject" class="form-control" placeholder="What's this about?">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Message</label>
+                <textarea name="message" rows="5" class="form-control" placeholder="Write your message..." required></textarea>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-gradient w-100"><i class="fa-solid fa-paper-plane me-2"></i>Send Message</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

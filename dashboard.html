@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Sunlytics{% endblock %}
+{% block content %}
+
+<section class="dashboard-header">
+  <div class="container">
+    <span class="section-label">Analytics</span>
+    <h2 class="section-title mb-0">Welcome back, {{ current_user['username'] }}</h2>
+    <p class="text-muted">Here's an overview of your solar prediction activity.</p>
+  </div>
+</section>
+
+<section class="pb-5">
+  <div class="container">
+
+    <!-- STAT CARDS -->
+    <div class="row g-4 mb-4">
+      <div class="col-6 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, var(--accent), #22D3EE);"><i class="fa-solid fa-layer-group"></i></div>
+          <div class="stat-value">{{ cards.total }}</div>
+          <div class="stat-label">Total Predictions</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #6366F1, #818CF8);"><i class="fa-solid fa-calendar-day"></i></div>
+          <div class="stat-value">{{ cards.today }}</div>
+          <div class="stat-label">Today's Predictions</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B, #FBBF24);"><i class="fa-solid fa-gauge"></i></div>
+          <div class="stat-value">{{ cards.avg }}</div>
+          <div class="stat-label">Average Output (kW)</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #22C55E, #4ADE80);"><i class="fa-solid fa-arrow-up-long"></i></div>
+          <div class="stat-value">{{ cards.max }}</div>
+          <div class="stat-label">Highest Output (kW)</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #EF4444, #F87171);"><i class="fa-solid fa-arrow-down-long"></i></div>
+          <div class="stat-value">{{ cards.min }}</div>
+          <div class="stat-label">Lowest Output (kW)</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #0F172A, #334155);"><i class="fa-solid fa-percent"></i></div>
+          <div class="stat-value">{{ "%.1f"|format((metrics.r2_score or 0) * 100) }}%</div>
+          <div class="stat-label">Model Accuracy (R²)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="chart-card">
+          <h6><i class="fa-solid fa-chart-line me-2" style="color:var(--accent);"></i>Prediction History (Recent)</h6>
+          <canvas id="lineChart" height="200"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-3">
+        <div class="chart-card">
+          <h6><i class="fa-solid fa-chart-pie me-2" style="color:var(--accent);"></i>Generation Status</h6>
+          <canvas id="pieChart" height="200"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-3">
+        <div class="chart-card">
+          <h6><i class="fa-solid fa-star me-2" style="color:var(--accent);"></i>Top Feature Importance</h6>
+          <canvas id="importanceChart" height="200"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-12">
+        <div class="chart-card">
+          <h6><i class="fa-solid fa-chart-column me-2" style="color:var(--accent);"></i>Monthly Predictions (Total Output)</h6>
+          <canvas id="barChart" height="90"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURE IMPORTANCE EXPLANATION -->
+    <div class="sunlytics-card p-4 mt-2">
+      <h6 class="mb-2"><i class="fa-solid fa-circle-info me-2" style="color:var(--accent);"></i>About Feature Importance</h6>
+      <p class="text-muted mb-0">Feature importance shows how much each input contributes to the model's prediction. In Sunlytics, <strong>Solar Irradiance</strong> is by far the strongest predictor of power output, since it directly measures the sunlight energy striking the panel — followed by panel and inverter efficiency, which govern how much of that energy is actually converted to usable power.</p>
+    </div>
+
+    <!-- RECENT TABLE -->
+    <div class="sunlytics-card p-4 mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0"><i class="fa-solid fa-clock-rotate-left me-2" style="color:var(--accent);"></i>Recent Predictions</h6>
+        <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-dark-custom">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table sunlytics-table mb-0">
+          <thead><tr><th>Date</th><th>Time</th><th>Output (kW)</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for r in recent %}
+            <tr>
+              <td>{{ r['prediction_date'] }}</td>
+              <td>{{ r['prediction_time'] }}</td>
+              <td>{{ "%.3f"|format(r['predicted_output']) }}</td>
+              <td><span class="badge-status-table {{ 'success' if r['generation_status']=='High Generation' else ('warning' if r['generation_status']=='Moderate Generation' else 'danger') }} px-2 py-1 rounded-pill">{{ r['generation_status'] }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted py-4">No predictions yet. <a href="{{ url_for('predict') }}">Make your first prediction</a>.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+  window.SUNLYTICS_FEATURE_IMPORTANCE = {{ (feature_importance or [])|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

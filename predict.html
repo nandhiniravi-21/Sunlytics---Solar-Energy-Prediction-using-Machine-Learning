@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Predict | Sunlytics{% endblock %}
+{% block content %}
+
+<section class="dashboard-header">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <span class="section-label">AI Prediction Engine</span>
+      <h2 class="section-title mb-0">Solar Power Output Prediction</h2>
+    </div>
+    <div class="text-end">
+      <div class="live-clock" id="liveClock">--:--:--</div>
+      <div class="text-muted small" id="liveDate">Loading date...</div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-5">
+  <div class="container">
+    <div class="row g-4">
+      <!-- FORM -->
+      <div class="col-lg-7">
+        <div class="sunlytics-card p-4 p-md-5">
+          <form method="POST" action="{{ url_for('predict') }}" id="predictForm" novalidate>
+
+            <div class="form-section-title"><i class="fa-solid fa-sun"></i> Environmental Conditions</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Solar Irradiance (W/m²)</label>
+                <input type="number" step="any" min="0" max="1500" name="solar_irradiance" class="form-control" required
+                       value="{{ form_data['solar_irradiance'] if form_data else '' }}" placeholder="e.g. 650">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Ambient Temperature (°C)</label>
+                <input type="number" step="any" min="-10" max="60" name="ambient_temperature" class="form-control" required
+                       value="{{ form_data['ambient_temperature'] if form_data else '' }}" placeholder="e.g. 28">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Cloud Cover (%)</label>
+                <input type="number" step="any" min="0" max="100" name="cloud_cover" class="form-control" required
+                       value="{{ form_data['cloud_cover'] if form_data else '' }}" placeholder="0 - 100">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Humidity (%)</label>
+                <input type="number" step="any" min="0" max="100" name="humidity" class="form-control" required
+                       value="{{ form_data['humidity'] if form_data else '' }}" placeholder="0 - 100">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Wind Speed (m/s)</label>
+                <input type="number" step="any" min="0" max="100" name="wind_speed" class="form-control" required
+                       value="{{ form_data['wind_speed'] if form_data else '' }}" placeholder="e.g. 5.2">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Rainfall (mm)</label>
+                <input type="number" step="any" min="0" max="500" name="rainfall" class="form-control" required
+                       value="{{ form_data['rainfall'] if form_data else '' }}" placeholder="e.g. 0">
+              </div>
+            </div>
+
+            <div class="form-section-title"><i class="fa-solid fa-solar-panel"></i> Panel &amp; System Conditions</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Panel Temperature (°C)</label>
+                <input type="number" step="any" min="-10" max="90" name="panel_temperature" class="form-control" required
+                       value="{{ form_data['panel_temperature'] if form_data else '' }}" placeholder="e.g. 42">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Dust Level</label>
+                <input type="number" step="any" min="0" max="100" name="dust_level" class="form-control" required
+                       value="{{ form_data['dust_level'] if form_data else '' }}" placeholder="0 - 100">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Panel Efficiency (%)</label>
+                <input type="number" step="any" min="0" max="100" name="panel_efficiency" class="form-control" required
+                       value="{{ form_data['panel_efficiency'] if form_data else '' }}" placeholder="0 - 100">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Inverter Efficiency (%)</label>
+                <input type="number" step="any" min="0" max="100" name="inverter_efficiency" class="form-control" required
+                       value="{{ form_data['inverter_efficiency'] if form_data else '' }}" placeholder="0 - 100">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Hour of Day (0-23)</label>
+                <select name="hour" class="form-select" required>
+                  <option value="">Select hour</option>
+                  {% for h in range(0,24) %}
+                  <option value="{{ h }}" {% if form_data and form_data['hour']|string == h|string %}selected{% endif %}>{{ '%02d'|format(h) }}:00</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mt-4">
+              <button type="submit" class="btn btn-gradient flex-grow-1" id="predictBtn">
+                <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Predict Output
+              </button>
+              <button type="button" class="btn btn-outline-dark-custom" id="resetBtn">
+                <i class="fa-solid fa-rotate-left me-2"></i>Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="col-lg-5">
+        {% if result %}
+        <div class="result-card fade-in-up">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <span class="text-white-50 small">Estimated Solar Power Output</span>
+            <span class="status-badge {{ result.status.level }}">{{ result.status.label }}</span>
+          </div>
+          <div class="result-value">{{ "%.3f"|format(result.predicted_output) }} <span class="fs-6 fw-normal text-white-50">kW</span></div>
+          <div class="d-flex gap-4 mt-3 text-white-50 small">
+            <span><i class="fa-regular fa-calendar me-1"></i>{{ result.date }}</span>
+            <span><i class="fa-regular fa-clock me-1"></i>{{ result.time }}</span>
+          </div>
+          <hr style="border-color: rgba(255,255,255,0.15);">
+          <h6 class="text-white mb-2"><i class="fa-solid fa-lightbulb me-2"></i>Smart Recommendation</h6>
+          <ul class="list-unstyled recommendation-list mb-3">
+            {% for tip in result.recommendation %}
+            <li><i class="fa-solid fa-angle-right"></i><span>{{ tip }}</span></li>
+            {% endfor %}
+          </ul>
+          <a href="{{ url_for('download_report', pred_id=result.id) }}" class="btn btn-gradient w-100">
+            <i class="fa-solid fa-file-pdf me-2"></i>Download PDF Report
+          </a>
+        </div>
+        {% else %}
+        <div class="sunlytics-card p-4 h-100 d-flex flex-column justify-content-center align-items-center text-center">
+          <div class="feature-icon-box mb-3"><i class="fa-solid fa-chart-simple"></i></div>
+          <h5>No Prediction Yet</h5>
+          <p class="text-muted">Fill in the input parameters and click <strong>Predict Output</strong> to see the estimated solar power generation, status, and smart recommendations here.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner-ring"></div>
+  <div id="loadingText" class="fw-semibold">Predicting...</div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/predict.js') }}"></script>
+{% endblock %}

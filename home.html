@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Sunlytics | AI-Based Solar Power Prediction{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center gy-5">
+      <div class="col-lg-6 fade-in-up">
+        <span class="hero-badge"><i class="fa-solid fa-bolt"></i> AI-Powered Solar Analytics</span>
+        <h1 class="hero-title">Predict Solar Power Output with <span>Machine Learning</span></h1>
+        <p class="hero-subtitle">Sunlytics uses a trained Random Forest Regressor to forecast real-time solar power generation from irradiance, weather and panel conditions — helping operators plan smarter and act faster.</p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{{ url_for('predict') }}" class="btn btn-gradient"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Try a Prediction</a>
+          <a href="{{ url_for('about') }}" class="btn btn-outline-nav" style="color:#fff; border-color:rgba(255,255,255,0.3);">Learn More</a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-value">{{ "%.1f"|format((metrics.r2_score or 0) * 100) }}%</div>
+            <div class="hero-stat-label">Model R² Accuracy</div>
+          </div>
+          <div>
+            <div class="hero-stat-value">{{ metrics.training_rows or "10,000" }}</div>
+            <div class="hero-stat-label">Training Records</div>
+          </div>
+          <div>
+            <div class="hero-stat-value">11</div>
+            <div class="hero-stat-label">Input Features</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="hero-visual fade-in-up">
+          <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="text-white fw-semibold"><i class="fa-solid fa-chart-line me-2"></i>Live Model Snapshot</span>
+              <span class="status-badge success"><i class="fa-solid fa-circle-check"></i> Model Ready</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.06);">
+                  <div class="text-white-50 small">R² Score</div>
+                  <div class="text-white fs-4 fw-bold">{{ "%.3f"|format(metrics.r2_score or 0) }}</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.06);">
+                  <div class="text-white-50 small">RMSE</div>
+                  <div class="text-white fs-4 fw-bold">{{ "%.3f"|format(metrics.rmse or 0) }}</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.06);">
+                  <div class="text-white-50 small">Algorithm</div>
+                  <div class="text-white fw-bold">Random Forest</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.06);">
+                  <div class="text-white-50 small">Estimators</div>
+                  <div class="text-white fw-bold">{{ metrics.best_params.n_estimators if metrics.best_params else 200 }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section-padding">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-label">Capabilities</span>
+      <h2 class="section-title">Everything you need to forecast solar output</h2>
+      <p class="section-subtitle mx-auto">A complete analytics workflow — from prediction to reporting.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="sunlytics-card p-4">
+          <div class="feature-icon-box"><i class="fa-solid fa-solar-panel"></i></div>
+          <h5>Instant Predictions</h5>
+          <p class="text-muted mb-0">Enter live sensor readings and get an instant AI-driven solar output estimate.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="sunlytics-card p-4">
+          <div class="feature-icon-box"><i class="fa-solid fa-chart-pie"></i></div>
+          <h5>Analytics Dashboard</h5>
+          <p class="text-muted mb-0">Track totals, averages, and trends across all your predictions in real time.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="sunlytics-card p-4">
+          <div class="feature-icon-box"><i class="fa-solid fa-file-pdf"></i></div>
+          <h5>Downloadable Reports</h5>
+          <p class="text-muted mb-0">Generate professional PDF reports for every prediction you make.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="sunlytics-card p-4">
+          <div class="feature-icon-box"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <h5>Prediction History</h5>
+          <p class="text-muted mb-0">Search, sort, filter and manage every past prediction in one place.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="sunlytics-card p-4">
+          <div class="feature-icon-box"><i class="fa-solid fa-lightbulb"></i></div>
+          <h5>Smart Recommendations</h5>
+          <p class="text-muted mb-0">Get actionable, condition-based tips alongside every prediction.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="sunlytics-card p-4">
+          <div class="feature-icon-box"><i class="fa-solid fa-moon"></i></div>
+          <h5>Dark / Light Mode</h5>
+          <p class="text-muted mb-0">A comfortable viewing experience, day or night, that remembers your choice.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECHNOLOGY -->
+<section class="section-padding" style="background: var(--card); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-label">Technology Stack</span>
+      <h2 class="section-title">Built with modern, reliable tools</h2>
+    </div>
+    <div class="row g-3 text-center">
+      {% for name, icon in [("Python","fa-brands fa-python"),("Flask","fa-solid fa-flask"),("Scikit-learn","fa-solid fa-robot"),("Random Forest","fa-solid fa-tree"),("HTML5","fa-brands fa-html5"),("CSS3","fa-brands fa-css3-alt"),("JavaScript","fa-brands fa-js"),("Bootstrap","fa-brands fa-bootstrap"),("SQLite","fa-solid fa-database"),("Chart.js","fa-solid fa-chart-column"),("Joblib","fa-solid fa-cubes")] %}
+      <div class="col-6 col-md-3 col-lg-2">
+        <div class="tech-icon-card">
+          <i class="{{ icon }}"></i>
+          <span>{{ name }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-padding">
+  <div class="container">
+    <div class="sunlytics-card p-5 text-center" style="background: linear-gradient(135deg, var(--primary), #14213D); color:#fff;">
+      <h2 class="mb-3" style="color:#fff;">Ready to forecast your solar output?</h2>
+      <p class="mb-4" style="color:rgba(255,255,255,0.75);">Create a free account and start generating AI-powered predictions in seconds.</p>
+      {% if current_user %}
+      <a href="{{ url_for('predict') }}" class="btn btn-gradient">Go to Predict <i class="fa-solid fa-arrow-right ms-2"></i></a>
+      {% else %}
+      <a href="{{ url_for('signup') }}" class="btn btn-gradient">Get Started Free <i class="fa-solid fa-arrow-right ms-2"></i></a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

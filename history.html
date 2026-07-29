@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Prediction History | Sunlytics{% endblock %}
+{% block content %}
+
+<section class="dashboard-header">
+  <div class="container">
+    <span class="section-label">Records</span>
+    <h2 class="section-title mb-0">Prediction History</h2>
+    <p class="text-muted">Search, sort and manage every prediction you've made.</p>
+  </div>
+</section>
+
+<section class="pb-5">
+  <div class="container">
+    <div class="sunlytics-card p-4 mb-4">
+      <form method="GET" action="{{ url_for('history') }}" class="row g-3 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label">Search</label>
+          <input type="text" name="q" class="form-control" placeholder="Search by date or status..." value="{{ search }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Sort By</label>
+          <select name="sort" class="form-select">
+            <option value="newest" {% if sort=='newest' %}selected{% endif %}>Newest First</option>
+            <option value="oldest" {% if sort=='oldest' %}selected{% endif %}>Oldest First</option>
+            <option value="highest" {% if sort=='highest' %}selected{% endif %}>Highest Output</option>
+            <option value="lowest" {% if sort=='lowest' %}selected{% endif %}>Lowest Output</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-gradient w-100"><i class="fa-solid fa-filter me-1"></i>Filter</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="sunlytics-card p-4">
+      <div class="table-responsive">
+        <table class="table sunlytics-table mb-0">
+          <thead>
+            <tr>
+              <th>#</th><th>Date</th><th>Time</th><th>Irradiance</th><th>Output (kW)</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+            <tr>
+              <td>{{ r['id'] }}</td>
+              <td>{{ r['prediction_date'] }}</td>
+              <td>{{ r['prediction_time'] }}</td>
+              <td>{{ r['solar_irradiance'] }}</td>
+              <td>{{ "%.3f"|format(r['predicted_output']) }}</td>
+              <td><span class="badge-status-table {{ 'success' if r['generation_status']=='High Generation' else ('warning' if r['generation_status']=='Moderate Generation' else 'danger') }} px-2 py-1 rounded-pill">{{ r['generation_status'] }}</span></td>
+              <td>
+                <a href="{{ url_for('download_report', pred_id=r['id']) }}" class="btn btn-sm btn-outline-dark-custom" title="Download PDF"><i class="fa-solid fa-file-pdf"></i></a>
+                <form method="POST" action="{{ url_for('delete_prediction', pred_id=r['id']) }}" class="d-inline" onsubmit="return confirm('Delete this prediction record?');">
+                  <button type="submit" class="btn btn-sm btn-outline-dark-custom text-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted py-5">No prediction records found. <a href="{{ url_for('predict') }}">Make a prediction</a>.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

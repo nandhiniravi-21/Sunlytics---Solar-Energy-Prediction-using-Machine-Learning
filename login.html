@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Log In | Sunlytics{% endblock %}
+{% block content %}
+<section class="auth-wrapper">
+  <div class="container">
+    <div class="auth-card fade-in-up">
+      <div class="text-center mb-4">
+        <div class="avatar-circle"><i class="fa-solid fa-right-to-bracket"></i></div>
+        <h3>Welcome back</h3>
+        <p class="text-muted">Log in to access your Sunlytics dashboard.</p>
+      </div>
+      <form method="POST" action="{{ url_for('login') }}" novalidate>
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" value="{{ username or '' }}" placeholder="Enter your username" required>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="btn btn-gradient w-100">Log In</button>
+      </form>
+      <p class="text-center text-muted mt-4 mb-0">Don't have an account? <a href="{{ url_for('signup') }}" style="color:var(--accent); font-weight:600;">Sign Up</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

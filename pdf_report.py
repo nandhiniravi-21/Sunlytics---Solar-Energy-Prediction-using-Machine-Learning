@@ -1,0 +1,142 @@
+"""
+PDF report generation for Sunlytics predictions.
+Builds a clean, single-page prediction report using reportlab.
+"""
+from io import BytesIO
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
+
+PRIMARY = colors.HexColor("#0F172A")
+ACCENT = colors.HexColor("#0EA5E9")
+SUCCESS = colors.HexColor("#22C55E")
+MUTED = colors.HexColor("#64748B")
+
+
+def build_prediction_pdf(record: dict) -> BytesIO:
+    """
+    record keys expected:
+      username, prediction_date, prediction_time, predicted_output,
+      generation_status, recommendation (list[str]), features (dict)
+    """
+    buf = BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=A4,
+        topMargin=20 * mm, bottomMargin=18 * mm,
+        leftMargin=18 * mm, rightMargin=18 * mm,
+    )
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "TitleStyle", parent=styles["Title"], textColor=PRIMARY, fontSize=22, spaceAfter=2
+    )
+    subtitle_style = ParagraphStyle(
+        "SubtitleStyle", parent=styles["Normal"], textColor=ACCENT, fontSize=12, spaceAfter=14
+    )
+    section_style = ParagraphStyle(
+        "SectionStyle", parent=styles["Heading2"], textColor=PRIMARY, fontSize=13, spaceBefore=14, spaceAfter=6
+    )
+    body_style = ParagraphStyle(
+        "BodyStyle", parent=styles["Normal"], textColor=colors.HexColor("#1E293B"), fontSize=10.5, leading=15
+    )
+    muted_style = ParagraphStyle(
+        "MutedStyle", parent=styles["Normal"], textColor=MUTED, fontSize=9.5
+    )
+
+    elements = []
+    elements.append(Paragraph("Sunlytics", title_style))
+    elements.append(Paragraph("AI-Based Solar Power Generation Prediction Report", subtitle_style))
+
+    meta_table = Table(
+        [
+            ["Username", record.get("username", "-"), "Date", record.get("prediction_date", "-")],
+            ["Report ID", str(record.get("id", "-")), "Time", record.get("prediction_time", "-")],
+        ],
+        colWidths=[70, 140, 60, 140],
+    )
+    meta_table.setStyle(
+        TableStyle(
+            [
+                ("FONTSIZE", (0, 0), (-1, -1), 9.5),
+                ("TEXTCOLOR", (0, 0), (0, -1), MUTED),
+                ("TEXTCOLOR", (2, 0), (2, -1), MUTED),
+                ("FONTNAME", (1, 0), (1, -1), "Helvetica-Bold"),
+                ("FONTNAME", (3, 0), (3, -1), "Helvetica-Bold"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
+    elements.append(meta_table)
+
+    elements.append(Paragraph("Prediction Result", section_style))
+    result_table = Table(
+        [
+            ["Estimated Solar Power Output", f"{record.get('predicted_output', 0):.2f} kWh"],
+            ["Generation Status", record.get("generation_status", "-")],
+        ],
+        colWidths=[260, 220],
+    )
+    result_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
+                ("BOX", (0, 0), (-1, -1), 0.75, colors.HexColor("#E2E8F0")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
+                ("FONTSIZE", (0, 0), (-1, -1), 10.5),
+                ("FONTNAME", (1, 0), (1, 0), "Helvetica-Bold"),
+                ("TEXTCOLOR", (1, 0), (1, 0), SUCCESS),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+            ]
+        )
+    )
+    elements.append(result_table)
+
+    elements.append(Paragraph("Input Parameters", section_style))
+    features = record.get("features", {})
+    rows = [["Parameter", "Value"]]
+    for k, v in features.items():
+        rows.append([k.replace("_", " "), str(v)])
+    input_table = Table(rows, colWidths=[260, 220])
+    input_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9.5),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F8FAFC")]),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ]
+        )
+    )
+    elements.append(input_table)
+
+    elements.append(Paragraph("Smart Recommendation", section_style))
+    for tip in record.get("recommendation", []):
+        elements.append(Paragraph(f"• {tip}", body_style))
+
+    elements.append(Spacer(1, 24))
+    elements.append(
+        Paragraph(
+            "Generated by Sunlytics — AI-Based Solar Power Generation Prediction System. "
+            "This report is system-generated based on a trained Random Forest Regressor model.",
+            muted_style,
+        )
+    )
+
+    doc.build(elements)
+    buf.seek(0)
+    return buf
